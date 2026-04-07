@@ -88,14 +88,6 @@ SCHEDULER_ENABLED=false gunicorn "run:app" --workers 4
 python -m app.tasks.run_scheduler  # in a separate process
 ```
 
-## Project Structure
-
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture.
-
-See [docs/API.md](docs/API.md) for REST and GraphQL API documentation.
-
-See [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) for implementation checklist.
-
 ## Offline-First
 
 All assets (Bootstrap 5, HTMX, Quill editor) are bundled locally. No internet dependency for any feature.
