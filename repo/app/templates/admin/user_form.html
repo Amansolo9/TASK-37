@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit User" if editing else "New User" }} - Admin{% endblock %}
+{% block content %}
+<h2>{{ "Edit User" if editing else "New User" }}</h2>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+        {{ form.username.label(class="form-label") }}
+        {{ form.username(class="form-control", **{"hx-get": url_for('admin.check_username'), "hx-trigger": "keyup changed delay:500ms", "hx-target": "#username-check", "hx-params": "username"}) }}
+        <div id="username-check"></div>
+    </div>
+    <div class="mb-3">
+        {{ form.display_name.label(class="form-label") }}
+        {{ form.display_name(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ form.password.label(class="form-label") }}
+        {{ form.password(class="form-control", placeholder="Leave blank to keep current" if editing else "") }}
+    </div>
+    <div class="mb-3 form-check">
+        {{ form.is_active(class="form-check-input") }}
+        {{ form.is_active.label(class="form-check-label") }}
+    </div>
+    <div class="mb-3">
+        {{ form.roles.label(class="form-label") }}
+        {{ form.roles(class="form-select", size=5) }}
+        <small class="text-muted">Hold Ctrl/Cmd to select multiple roles.</small>
+    </div>
+    {{ form.submit(class="btn btn-success") }}
+    <a href="{{ url_for('admin.users') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

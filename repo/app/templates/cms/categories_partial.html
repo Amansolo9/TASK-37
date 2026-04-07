@@ -1,0 +1,9 @@
+<table class="table table-sm">
+    <thead><tr><th>Name</th><th>Slug</th><th>Active</th></tr></thead>
+    <tbody>
+    {% for c in categories %}
+    <tr><td>{{ c.name }}</td><td><code>{{ c.slug }}</code></td><td>{% if c.active %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td></tr>
+    {% endfor %}
+    {% if not categories %}<tr><td colspan="3" class="text-muted text-center">No categories.</td></tr>{% endif %}
+    </tbody>
+</table>

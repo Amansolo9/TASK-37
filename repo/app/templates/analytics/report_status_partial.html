@@ -1,0 +1,15 @@
+<table class="table table-sm w-auto">
+    <tr><th>Type</th><td>{{ job.report_type }}</td></tr>
+    <tr><th>Status</th><td><span class="badge bg-{% if job.status == 'completed' %}success{% elif job.status == 'failed' %}danger{% elif job.status == 'running' %}warning{% else %}secondary{% endif %}">{{ job.status }}</span></td></tr>
+    <tr><th>Rows</th><td>{{ job.row_count or '-' }}</td></tr>
+    {% if job.error_text %}<tr><th>Error</th><td class="text-danger">{{ job.error_text }}</td></tr>{% endif %}
+    <tr><th>Created</th><td>{{ format_datetime(job.created_at) }}</td></tr>
+    {% if job.finished_at %}<tr><th>Finished</th><td>{{ format_datetime(job.finished_at) }}</td></tr>{% endif %}
+</table>
+{% if job.status == 'completed' and job.result_file_path %}
+<a href="{{ url_for('analytics.report_download', job_id=job.id) }}" class="btn btn-success">Download CSV</a>
+{% endif %}
+{% if job.status in ('queued','running') %}
+<div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+<small class="text-muted">Generating report...</small>
+{% endif %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Roles - Admin{% endblock %}
+{% block content %}
+<h2>Roles</h2>
+<table class="table table-striped">
+    <thead><tr><th>Name</th><th>Description</th><th>Permissions</th></tr></thead>
+    <tbody>
+    {% for r in roles %}
+    <tr>
+        <td>{{ r.name }}</td>
+        <td>{{ r.description or '' }}</td>
+        <td>{% for p in r.permissions %}<span class="badge bg-info">{{ p.permission }}</span> {% endfor %}</td>
+    </tr>
+    {% endfor %}
+    {% if not roles %}<tr><td colspan="3" class="text-muted text-center">No roles defined.</td></tr>{% endif %}
+    </tbody>
+</table>
+{% endblock %}

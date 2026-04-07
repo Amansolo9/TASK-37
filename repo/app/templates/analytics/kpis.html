@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}KPIs - Analytics{% endblock %}
+{% block content %}
+<h2>KPI Dashboard</h2>
+<div class="row mb-3 g-2">
+    <div class="col-auto">
+        <select class="form-select" hx-get="{{ url_for('htmx_api.htmx_kpis') }}" hx-target="#kpi-cards" hx-trigger="change" name="scope">
+            <option value="overview" {% if current_scope == 'overview' %}selected{% endif %}>Overview</option>
+            <option value="orders" {% if current_scope == 'orders' %}selected{% endif %}>Orders</option>
+            <option value="schedule" {% if current_scope == 'schedule' %}selected{% endif %}>Schedule</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <select class="form-select" hx-get="{{ url_for('htmx_api.htmx_kpis') }}" hx-target="#kpi-cards" hx-trigger="change" name="region_id">
+            <option value="">All Regions</option>
+            {% for r in regions %}<option value="{{ r.id }}" {% if current_region_id == r.id %}selected{% endif %}>{{ r.name }}</option>{% endfor %}
+        </select>
+    </div>
+</div>
+<div id="kpi-cards">{% include "analytics/kpis_partial.html" %}</div>
+<hr>
+<h4>Generate Report</h4>
+<form method="POST" action="{{ url_for('analytics.report_new') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="row g-2 mb-2">
+        <div class="col-auto">
+            <label class="form-label">Report Type</label>
+            <select name="report_type" class="form-select">
+                <option value="orders">Orders</option>
+                <option value="schedule">Schedule</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <label class="form-label">Region</label>
+            <select name="region_id" class="form-select">
+                <option value="">All Regions</option>
+                {% for r in regions %}<option value="{{ r.id }}">{{ r.name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="col-auto">
+            <label class="form-label">State/Status</label>
+            <input type="text" name="state" class="form-control" placeholder="e.g. paid, completed">
+        </div>
+    </div>
+    <div class="row g-2 mb-2">
+        <div class="col-auto">
+            <label class="form-label">Date From</label>
+            <input type="text" name="date_from" class="form-control" placeholder="MM/DD/YYYY">
+        </div>
+        <div class="col-auto">
+            <label class="form-label">Date To</label>
+            <input type="text" name="date_to" class="form-control" placeholder="MM/DD/YYYY">
+        </div>
+        <div class="col-auto d-flex align-items-end">
+            <button class="btn btn-primary" type="submit">Generate CSV</button>
+        </div>
+    </div>
+</form>
+{% endblock %}

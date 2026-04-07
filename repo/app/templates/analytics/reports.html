@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Reports - Analytics{% endblock %}
+{% block content %}
+<h2>Reports</h2>
+<table class="table table-striped">
+    <thead><tr><th>ID</th><th>Type</th><th>Status</th><th>Rows</th><th>Created</th><th></th></tr></thead>
+    <tbody>
+    {% for j in pagination.items %}
+    <tr>
+        <td>#{{ j.id }}</td><td>{{ j.report_type }}</td>
+        <td><span class="badge bg-{% if j.status == 'completed' %}success{% elif j.status == 'failed' %}danger{% elif j.status == 'running' %}warning{% else %}secondary{% endif %}">{{ j.status }}</span></td>
+        <td>{{ j.row_count or '-' }}</td><td>{{ format_datetime(j.created_at) }}</td>
+        <td><a href="{{ url_for('analytics.report_detail', job_id=j.id) }}" class="btn btn-sm btn-outline-primary">View</a></td>
+    </tr>
+    {% endfor %}
+    {% if not pagination.items %}<tr><td colspan="6" class="text-muted text-center">No reports generated yet.</td></tr>{% endif %}
+    </tbody>
+</table>
+{% from "components/pagination.html" import render_pagination %}
+{{ render_pagination(pagination, 'analytics.reports') }}
+{% endblock %}

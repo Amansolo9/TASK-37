@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Content - CMS{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Content</h2>
+    <a href="{{ url_for('cms.content_new') }}" class="btn btn-success">New Content</a>
+</div>
+<div class="row mb-3">
+    <div class="col-auto">
+        <select class="form-select" hx-get="{{ url_for('htmx_api.htmx_content_list') }}" hx-target="#content-table" hx-trigger="change" name="state">
+            <option value="">All States</option>
+            {% for s in ['draft','in_review','published','scheduled','withdrawn'] %}
+            <option value="{{ s }}" {% if current_state == s %}selected{% endif %}>{{ s|replace('_',' ')|title }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-auto">
+        <select class="form-select" hx-get="{{ url_for('htmx_api.htmx_content_list') }}" hx-target="#content-table" hx-trigger="change" name="region_id">
+            <option value="">All Regions</option>
+            {% for r in regions %}<option value="{{ r.id }}" {% if current_region_id == r.id %}selected{% endif %}>{{ r.name }}</option>{% endfor %}
+        </select>
+    </div>
+</div>
+<div id="content-table">
+    {% include "cms/content_list_partial.html" %}
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Settings - Admin{% endblock %}
+{% block content %}
+<h2>Settings</h2>
+<table class="table table-striped">
+    <thead><tr><th>Key</th><th>Value</th><th>Updated</th></tr></thead>
+    <tbody>
+    {% for s in settings %}
+    <tr><td>{{ s.key }}</td><td><code>{{ s.value_json }}</code></td><td>{{ format_datetime(s.updated_at) }}</td></tr>
+    {% endfor %}
+    {% if not settings %}<tr><td colspan="3" class="text-muted text-center">No settings configured.</td></tr>{% endif %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,17 @@
+<table class="table table-striped">
+    <thead><tr><th>Order #</th><th>Customer</th><th>Region</th><th>Total</th><th>State</th><th>Created</th><th></th></tr></thead>
+    <tbody>
+    {% for o in pagination.items %}
+    <tr>
+        <td><code>{{ o.order_number }}</code></td><td>{{ o.customer_name }}</td>
+        <td>{{ o.region.name if o.region else '' }}</td><td>${{ o.total_amount }}</td>
+        <td><span class="badge bg-{% if o.state == 'paid' %}success{% elif o.state == 'completed' %}primary{% elif o.state == 'canceled' %}danger{% elif o.state == 'refunded' %}warning{% else %}secondary{% endif %}">{{ o.state|title }}</span></td>
+        <td>{{ format_datetime(o.created_at) }}</td>
+        <td><a href="{{ url_for('orders.order_detail', id=o.id) }}" class="btn btn-sm btn-outline-primary">View</a></td>
+    </tr>
+    {% endfor %}
+    {% if not pagination.items %}<tr><td colspan="7" class="text-muted text-center">No orders found.</td></tr>{% endif %}
+    </tbody>
+</table>
+{% from "components/pagination.html" import render_pagination %}
+{{ render_pagination(pagination, 'orders.order_list') }}

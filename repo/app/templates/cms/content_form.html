@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit Content" if editing else "New Content" }} - CMS{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/editor/quill.snow.css') }}">
+{% endblock %}
+{% block content %}
+<h2>{{ "Edit Content" if editing else "New Content" }}</h2>
+{% if editing and item %}
+<div class="mb-2">
+    <span class="badge bg-{% if item.workflow_state == 'published' %}success{% elif item.workflow_state == 'in_review' %}warning{% else %}secondary{% endif %}">{{ item.workflow_state|replace('_',' ')|title }}</span>
+    <a href="{{ url_for('cms.content_versions', id=item.id) }}" class="btn btn-sm btn-outline-secondary ms-2">Version History</a>
+</div>
+{% endif %}
+<form method="POST" id="content-form">
+    {{ form.hidden_tag() }}
+    <div class="row">
+        <div class="col-md-8">
+            <div class="mb-3">{{ form.title.label(class="form-label") }}{{ form.title(class="form-control") }}</div>
+            <div class="mb-3">
+                {{ form.slug.label(class="form-label") }}
+                {{ form.slug(class="form-control", **{"hx-get": url_for('cms.check_slug'), "hx-trigger": "keyup changed delay:500ms", "hx-target": "#slug-check", "hx-params": "slug"}) }}
+                <div id="slug-check"></div>
+            </div>
+            <div class="mb-3">{{ form.summary.label(class="form-label") }}{{ form.summary(class="form-control", rows=3) }}</div>
+            <div class="mb-3">
+                <label class="form-label">Body</label>
+                <div id="editor" style="min-height:300px">{{ form.body_html.data|safe if form.body_html.data else '' }}</div>
+                {{ form.body_html() }}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="mb-3">{{ form.region_id.label(class="form-label") }}{{ form.region_id(class="form-select") }}</div>
+            <div class="mb-3">{{ form.media_type.label(class="form-label") }}{{ form.media_type(class="form-select") }}</div>
+            <div class="mb-3">{{ form.categories.label(class="form-label") }}{{ form.categories(class="form-select", size=5) }}</div>
+            <div class="mb-3">{{ form.tags.label(class="form-label") }}{{ form.tags(class="form-select", size=5) }}</div>
+        </div>
+    </div>
+    {{ form.submit(class="btn btn-success") }}
+    <a href="{{ url_for('cms.content_list') }}" class="btn btn-secondary">Cancel</a>
+</form>
+
+{% if editing and item %}
+<hr>
+<div class="row mt-3">
+    {% if item.workflow_state == 'draft' %}
+    <div class="col-auto">
+        <form method="POST" action="{{ url_for('cms.submit_review', id=item.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-warning" type="submit">Submit for Review</button>
+        </form>
+    </div>
+    {% endif %}
+    {% if item.workflow_state == 'in_review' %}
+    <div class="col-auto">
+        <form method="POST" action="{{ url_for('cms.approve', id=item.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="text" name="review_notes" class="form-control d-inline-block w-auto" placeholder="Review notes">
+            <button class="btn btn-success" type="submit">Publish</button>
+        </form>
+    </div>
+    <div class="col-auto">
+        <form method="POST" action="{{ url_for('cms.schedule', id=item.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="text" name="scheduled_at" class="form-control d-inline-block w-auto" placeholder="MM/DD/YYYY HH:MM">
+            <button class="btn btn-info" type="submit">Schedule</button>
+        </form>
+    </div>
+    {% endif %}
+    {% if item.workflow_state in ('published', 'scheduled') %}
+    <div class="col-auto">
+        <form method="POST" action="{{ url_for('cms.withdraw', id=item.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-danger" type="submit">Withdraw</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='vendor/editor/quill.min.js') }}"></script>
+<script>
+var quill = new Quill('#editor', {theme: 'snow', modules: {toolbar: [
+    [{'header': [1,2,3,false]}], ['bold','italic','underline','strike'],
+    [{'list':'ordered'},{'list':'bullet'}], ['blockquote','code-block'],
+    ['link','image'], ['clean']
+]}});
+var form = document.getElementById('content-form');
+form.addEventListener('submit', function() {
+    document.querySelector('input[name="body_html"]').value = quill.root.innerHTML;
+});
+{% if form.body_html.data %}
+quill.root.innerHTML = {{ form.body_html.data|tojson }};
+{% endif %}
+</script>
+{% endblock %}

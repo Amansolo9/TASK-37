@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Time Slots - Dispatch{% endblock %}
+{% block content %}
+<h2>Time Slot Templates</h2>
+<table class="table table-striped">
+    <thead><tr><th>Name</th><th>Start</th><th>End</th><th>Active</th></tr></thead>
+    <tbody>
+    {% for s in slots %}
+    <tr><td>{{ s.name }}</td><td>{{ s.start_time }}</td><td>{{ s.end_time }}</td><td>{% if s.active %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td></tr>
+    {% endfor %}
+    {% if not slots %}<tr><td colspan="4" class="text-muted text-center">No time slots configured.</td></tr>{% endif %}
+    </tbody>
+</table>
+{% endblock %}

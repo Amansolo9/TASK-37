@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Upload File{% endblock %}
+{% block content %}
+<h2>Upload File</h2>
+<form method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="mb-3">
+        <label class="form-label">File (PDF, JPG, PNG, DOCX - max 20MB)</label>
+        <input type="file" name="file" class="form-control" required>
+    </div>
+    <button class="btn btn-success" type="submit">Upload</button>
+    <a href="{{ url_for('files.file_list') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

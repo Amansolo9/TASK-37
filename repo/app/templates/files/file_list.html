@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Files{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Files</h2>
+    <a href="{{ url_for('files.upload') }}" class="btn btn-success">Upload</a>
+</div>
+<table class="table table-striped table-sm">
+    <thead><tr><th>Name</th><th>Type</th><th>Size</th><th>SHA-256</th><th>Uploaded</th><th>Dup?</th><th></th></tr></thead>
+    <tbody>
+    {% for a in pagination.items %}
+    <tr>
+        <td>{{ a.original_filename }}</td><td>{{ a.file_ext }}</td><td>{{ (a.size_bytes / 1024)|round(1) }} KB</td>
+        <td><code title="{{ a.sha256 }}">{{ a.sha256[:12] }}...</code></td>
+        <td>{{ format_datetime(a.uploaded_at) }}</td>
+        <td>{% if a.duplicate_of_id %}<span class="badge bg-warning">Dup #{{ a.duplicate_of_id }}</span>{% else %}-{% endif %}</td>
+        <td><a href="{{ url_for('files.download_link', id=a.id) }}" class="btn btn-sm btn-outline-primary">Download</a></td>
+    </tr>
+    {% endfor %}
+    {% if not pagination.items %}<tr><td colspan="7" class="text-muted text-center">No files uploaded.</td></tr>{% endif %}
+    </tbody>
+</table>
+{% from "components/pagination.html" import render_pagination %}
+{{ render_pagination(pagination, 'files.file_list') }}
+{% endblock %}

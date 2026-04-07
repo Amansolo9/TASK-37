@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Search - GreenCycle{% endblock %}
+{% block content %}
+<h2>Search</h2>
+<form hx-get="{{ url_for('htmx_api.htmx_search') }}" hx-target="#search-results" hx-trigger="submit">
+    <div class="row g-2 mb-3">
+        <div class="col-md-6"><input type="text" name="q" class="form-control" placeholder="Search content and operations..." value="{{ query }}"></div>
+        <div class="col-auto">
+            <select name="type" class="form-select"><option value="">All Types</option><option value="content" {% if current_type == 'content' %}selected{% endif %}>Content</option><option value="schedule" {% if current_type == 'schedule' %}selected{% endif %}>Schedule</option></select>
+        </div>
+        <div class="col-auto">
+            <select name="region_id" class="form-select"><option value="">All Regions</option>{% for r in regions %}<option value="{{ r.id }}" {% if current_region_id == r.id %}selected{% endif %}>{{ r.name }}</option>{% endfor %}</select>
+        </div>
+        <div class="col-auto">
+            <select name="category_id" class="form-select"><option value="">All Categories</option>{% for c in categories %}<option value="{{ c.id }}" {% if current_category_id == c.id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}</select>
+        </div>
+        <div class="col-auto">
+            <select name="media_type" class="form-select"><option value="">All Media</option>{% for mt in ['article','guide','news','event','video','infographic'] %}<option value="{{ mt }}" {% if current_media_type == mt %}selected{% endif %}>{{ mt|title }}</option>{% endfor %}</select>
+        </div>
+        <div class="col-auto"><input type="text" name="date_from" class="form-control" placeholder="From MM/DD/YYYY" value="{{ request.args.get('date_from', '') }}" style="width:150px"></div>
+        <div class="col-auto"><input type="text" name="date_to" class="form-control" placeholder="To MM/DD/YYYY" value="{{ request.args.get('date_to', '') }}" style="width:150px"></div>
+        <div class="col-auto"><button class="btn btn-success" type="submit">Search</button></div>
+    </div>
+</form>
+{% if trending %}
+<div class="mb-3"><strong>Trending:</strong> {% for term, count in trending %}<span class="badge bg-secondary me-1">{{ term }} ({{ count }})</span>{% endfor %}</div>
+{% endif %}
+<div id="search-results">
+    {% include "search/results_partial.html" %}
+</div>
+{% endblock %}

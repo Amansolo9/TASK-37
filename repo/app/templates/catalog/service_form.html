@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit Service" if editing else "New Service" }}{% endblock %}
+{% block content %}
+<h2>{{ "Edit Service" if editing else "New Service" }}</h2>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">{{ form.code.label(class="form-label") }}{{ form.code(class="form-control") }}</div>
+    <div class="mb-3">{{ form.name.label(class="form-label") }}{{ form.name(class="form-control") }}</div>
+    <div class="mb-3">{{ form.description.label(class="form-label") }}{{ form.description(class="form-control", rows=3) }}</div>
+    <div class="mb-3">{{ form.pricing_model.label(class="form-label") }}{{ form.pricing_model(class="form-select") }}</div>
+    <div class="row">
+        <div class="col-md-6 mb-3">{{ form.unit_rate.label(class="form-label") }}{{ form.unit_rate(class="form-control") }}</div>
+        <div class="col-md-6 mb-3">{{ form.package_price.label(class="form-label") }}{{ form.package_price(class="form-control") }}</div>
+    </div>
+    <div class="mb-3 form-check">{{ form.taxable(class="form-check-input") }}{{ form.taxable.label(class="form-check-label") }}</div>
+    {{ form.submit(class="btn btn-success") }} <a href="{{ url_for('catalog.services') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

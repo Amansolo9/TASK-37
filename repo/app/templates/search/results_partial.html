@@ -1,0 +1,18 @@
+{% if query %}
+<p class="text-muted">{{ result_count }} result(s) for "{{ query }}"</p>
+{% if results %}
+<div class="list-group">
+    {% for r in results %}
+    <div class="list-group-item">
+        <div class="d-flex justify-content-between">
+            <h6 class="mb-1">{{ r.title }}</h6>
+            <span class="badge bg-{% if r.record_type == 'content' %}success{% else %}primary{% endif %}">{{ r.record_type }}</span>
+        </div>
+        <small class="text-muted">{{ (r.body_text or '')[:150] }}...</small>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">No results found. Try different search terms.</div>
+{% endif %}
+{% endif %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Payments - {{ order.order_number }}{% endblock %}
+{% block content %}
+<h2>Record Payment for {{ order.order_number }}</h2>
+<p>Total: <strong>${{ order.total_amount }}</strong> | Paid: ${{ order.paid_amount }}</p>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <div class="row">
+        <div class="col-md-3 mb-3">{{ form.tender_type.label(class="form-label") }}{{ form.tender_type(class="form-select") }}</div>
+        <div class="col-md-3 mb-3">{{ form.receipt_number.label(class="form-label") }}{{ form.receipt_number(class="form-control") }}</div>
+        <div class="col-md-3 mb-3">{{ form.amount.label(class="form-label") }}{{ form.amount(class="form-control") }}</div>
+        <div class="col-md-3 mb-3">{{ form.reference_note.label(class="form-label") }}{{ form.reference_note(class="form-control") }}</div>
+    </div>
+    {{ form.submit(class="btn btn-success") }} <a href="{{ url_for('orders.order_detail', id=order.id) }}" class="btn btn-secondary">Back</a>
+</form>
+<h5 class="mt-4">Payment History</h5>
+<table class="table table-sm">
+    <thead><tr><th>Type</th><th>Receipt</th><th>Amount</th><th>Recorded</th></tr></thead>
+    <tbody>
+    {% for p in order.payments %}<tr><td>{{ p.tender_type }}</td><td>{{ p.receipt_number }}</td><td>${{ p.amount }}</td><td>{{ format_datetime(p.recorded_at) }}</td></tr>{% endfor %}
+    </tbody>
+</table>
+{% endblock %}

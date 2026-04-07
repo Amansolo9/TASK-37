@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Order {{ order.order_number }}{% endblock %}
+{% block content %}
+<h2>Order {{ order.order_number }}</h2>
+<span class="badge bg-{% if order.state == 'paid' %}success{% elif order.state == 'completed' %}primary{% elif order.state == 'canceled' %}danger{% elif order.state == 'refunded' %}warning{% else %}secondary{% endif %} mb-3">{{ order.state|title }}</span>
+<div class="row">
+    <div class="col-md-6">
+        <table class="table table-sm">
+            <tr><th>Customer</th><td>{{ order.customer_name }}</td></tr>
+            <tr><th>Organization</th><td>{{ order.customer_org or '-' }}</td></tr>
+            <tr><th>Service Address</th><td>{% if address %}{{ address }}{% else %}[encrypted]{% endif %}</td></tr>
+            <tr><th>Region</th><td>{{ order.region.name if order.region else '' }}</td></tr>
+            <tr><th>Scheduled Date</th><td>{{ format_date(order.scheduled_date) }}</td></tr>
+        </table>
+    </div>
+    <div class="col-md-6">
+        <table class="table table-sm">
+            <tr><th>Subtotal</th><td>${{ order.subtotal_amount }}</td></tr>
+            <tr><th>Tax ({{ "%.2f"|format(order.tax_rate * 100) }}%)</th><td>${{ order.tax_amount }}</td></tr>
+            <tr><th>Total</th><td><strong>${{ order.total_amount }}</strong></td></tr>
+            <tr><th>Paid</th><td>${{ order.paid_amount }}</td></tr>
+        </table>
+    </div>
+</div>
+<h5>Line Items</h5>
+<table class="table table-sm">
+    <thead><tr><th>Service</th><th>Qty</th><th>Rate</th><th>Subtotal</th><th>Taxable</th></tr></thead>
+    <tbody>
+    {% for li in order.items %}
+    <tr><td>{{ li.description_snapshot }}</td><td>{{ li.quantity }}</td><td>${{ li.unit_rate }}</td><td>${{ li.line_subtotal }}</td><td>{{ "Yes" if li.taxable else "No" }}</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+<h5>Payments</h5>
+<table class="table table-sm">
+    <thead><tr><th>Type</th><th>Receipt #</th><th>Amount</th><th>Recorded</th></tr></thead>
+    <tbody>
+    {% for p in order.payments %}
+    <tr><td>{{ p.tender_type }}</td><td>{{ p.receipt_number }}</td><td>${{ p.amount }}</td><td>{{ format_datetime(p.recorded_at) }}</td></tr>
+    {% endfor %}
+    {% if not order.payments %}<tr><td colspan="4" class="text-muted">No payments recorded.</td></tr>{% endif %}
+    </tbody>
+</table>
+<div class="mt-3">
+    {% if order.state == 'created' %}
+    <a href="{{ url_for('orders.payments', id=order.id) }}" class="btn btn-success">Record Payment</a>
+    <form method="POST" action="{{ url_for('orders.mark_paid', id=order.id) }}" class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-primary" type="submit" {% if not order.payments %}disabled title="Record a payment first"{% endif %}>Mark Paid</button>
+    </form>
+    <form method="POST" action="{{ url_for('orders.cancel', id=order.id) }}" class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-danger" type="submit">Cancel</button>
+    </form>
+    {% endif %}
+    {% if order.state == 'paid' %}
+    <form method="POST" action="{{ url_for('orders.mark_completed', id=order.id) }}" class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-primary" type="submit">Complete</button>
+    </form>
+    <form method="POST" action="{{ url_for('orders.refund', id=order.id) }}" class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-warning" type="submit">Refund</button>
+    </form>
+    {% endif %}
+    {% if order.state == 'completed' %}
+    <form method="POST" action="{{ url_for('orders.refund', id=order.id) }}" class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-warning" type="submit">Refund</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

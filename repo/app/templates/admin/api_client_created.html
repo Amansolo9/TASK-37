@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}API Client Created - Admin{% endblock %}
+{% block content %}
+<h2>API Client Created</h2>
+<div class="alert alert-warning">
+    <strong>Save this secret now!</strong> It will not be shown again.
+</div>
+<table class="table w-auto">
+    <tr><th>Name</th><td>{{ client.name }}</td></tr>
+    <tr><th>Key ID</th><td><code>{{ client.key_id }}</code></td></tr>
+    <tr><th>Secret</th><td><code class="text-danger">{{ secret }}</code></td></tr>
+    <tr><th>Scopes</th><td>{{ client.scopes_json }}</td></tr>
+</table>
+<a href="{{ url_for('admin.api_clients') }}" class="btn btn-primary">Back to API Clients</a>
+{% endblock %}

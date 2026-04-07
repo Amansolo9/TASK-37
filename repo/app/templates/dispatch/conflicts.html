@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Conflicts - Dispatch{% endblock %}
+{% block content %}
+<h2>Unresolved Conflicts</h2>
+<table class="table table-striped">
+    <thead><tr><th>Schedule Item</th><th>Type</th><th>Severity</th><th>Message</th><th></th></tr></thead>
+    <tbody>
+    {% for c in conflicts %}
+    <tr>
+        <td>{{ c.schedule_item.title if c.schedule_item else '' }}</td>
+        <td><span class="badge bg-warning">{{ c.conflict_type }}</span></td>
+        <td>{{ c.severity }}</td>
+        <td>{{ c.message }}</td>
+        <td>
+            <form method="POST" action="{{ url_for('dispatch.resolve_conflict', id=c.id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-success" type="submit">Resolve</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+    {% if not conflicts %}<tr><td colspan="5" class="text-muted text-center">No unresolved conflicts.</td></tr>{% endif %}
+    </tbody>
+</table>
+{% endblock %}

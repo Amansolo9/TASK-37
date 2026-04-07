@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Service Catalog{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Service Catalog</h2>
+    <a href="{{ url_for('catalog.service_new') }}" class="btn btn-success">New Service</a>
+</div>
+<table class="table table-striped">
+    <thead><tr><th>Code</th><th>Name</th><th>Pricing</th><th>Rate</th><th>Taxable</th><th>Active</th><th></th></tr></thead>
+    <tbody>
+    {% for s in services %}
+    <tr>
+        <td><code>{{ s.code }}</code></td><td>{{ s.name }}</td><td>{{ s.pricing_model }}</td>
+        <td>{% if s.pricing_model == 'package' %}${{ s.package_price }}{% else %}${{ s.unit_rate }}/unit{% endif %}</td>
+        <td>{% if s.taxable %}Yes{% else %}No{% endif %}</td>
+        <td>{% if s.active %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+        <td><a href="{{ url_for('catalog.service_edit', id=s.id) }}" class="btn btn-sm btn-outline-primary">Edit</a></td>
+    </tr>
+    {% endfor %}
+    {% if not services %}<tr><td colspan="7" class="text-muted text-center">No services in catalog.</td></tr>{% endif %}
+    </tbody>
+</table>
+{% endblock %}

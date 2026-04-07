@@ -1,0 +1,34 @@
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=wsgi.py
+      - SECRET_KEY=change-me-in-production-use-a-real-secret
+      - JWT_SECRET_KEY=change-me-jwt-secret-in-production
+      - FIELD_ENCRYPTION_KEY=sftLkMsijRqJsseVyPhBfqR28fi_Z0W_XA5QMvjVaCg=
+      - SQLITE_PATH=instance/greencycle.db
+      - STORAGE_ROOT=/app/storage
+      - REPORT_OUTPUT_ROOT=/app/storage/generated_reports
+      - SESSION_TIMEOUT_MINUTES=30
+      - LOGIN_LOCKOUT_THRESHOLD=5
+      - LOGIN_LOCKOUT_MINUTES=15
+      - MAX_UPLOAD_MB=20
+      - DOWNLOAD_URL_TTL_SECONDS=600
+      - ATTACHMENT_ARCHIVE_DAYS=180
+      - ATTACHMENT_PURGE_YEARS=7
+      - ENABLE_FILE_PURGE=false
+      - API_DAILY_QUOTA=1000
+      - EXTERNAL_INTEGRATIONS_ENABLED=false
+      - WATERMARK_DEFAULT_ENABLED=false
+      - DEFAULT_PAGE_SIZE=50
+      - AGGREGATE_CACHE_TTL_SECONDS=600
+    volumes:
+      - greencycle-data:/app/instance
+      - greencycle-storage:/app/storage
+    restart: unless-stopped
+
+volumes:
+  greencycle-data:
+  greencycle-storage:

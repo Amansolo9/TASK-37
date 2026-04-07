@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Schedule Suggestions - Dispatch{% endblock %}
+{% block content %}
+<h2>Semi-Automatic Schedule Suggestions</h2>
+<p class="text-muted">Review suggested assignments and confirm the best option for each item.</p>
+{% if not suggestions %}
+<div class="alert alert-info">No items need scheduling.</div>
+{% endif %}
+{% for s in suggestions %}
+<div class="card mb-3">
+    <div class="card-header"><strong>{{ s.item_title }}</strong> (Item #{{ s.item_id }})</div>
+    <div class="card-body">
+        {% if s.candidates %}
+        <table class="table table-sm">
+            <thead><tr><th>Rank</th><th>Classroom</th><th>Instructor</th><th>Conflicts</th><th></th></tr></thead>
+            <tbody>
+            {% for c in s.candidates %}
+            <tr class="{% if c.conflict_count == 0 %}table-success{% elif c.conflict_count > 0 %}table-warning{% endif %}">
+                <td>{{ loop.index }}</td>
+                <td>{{ c.classroom_name }}</td>
+                <td>{{ c.instructor_name }}</td>
+                <td>
+                    {% if c.conflict_count == 0 %}
+                    <span class="badge bg-success">No conflicts</span>
+                    {% else %}
+                    <span class="badge bg-warning">{{ c.conflict_count }} conflict(s)</span>
+                    {% for msg in c.conflicts %}<br><small class="text-muted">{{ msg }}</small>{% endfor %}
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="POST" action="{{ url_for('dispatch.confirm_suggestion', id=s.item_id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="classroom_id" value="{{ c.classroom_id }}">
+                        <input type="hidden" name="instructor_id" value="{{ c.instructor_id }}">
+                        <button class="btn btn-sm btn-success" type="submit">Confirm</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted">No candidates available.</p>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+<a href="{{ url_for('dispatch.schedule') }}" class="btn btn-secondary">Back to Schedule</a>
+{% endblock %}

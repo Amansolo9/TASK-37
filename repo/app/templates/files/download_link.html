@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Download - {{ attachment.original_filename }}{% endblock %}
+{% block content %}
+<h2>Download</h2>
+<p>File: <strong>{{ attachment.original_filename }}</strong> ({{ attachment.file_ext }}, {{ (attachment.size_bytes / 1024)|round(1) }} KB)</p>
+<a href="{{ download_url }}" class="btn btn-success">Download</a>
+<a href="{{ download_url }}&watermark=1" class="btn btn-outline-secondary">Download with Watermark</a>
+<p class="text-muted mt-2">Link valid for {{ config.DOWNLOAD_URL_TTL_SECONDS // 60 }} minutes.</p>
+{% endblock %}

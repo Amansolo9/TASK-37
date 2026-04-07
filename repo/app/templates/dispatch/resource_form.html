@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}New Resource - Dispatch{% endblock %}
+{% block content %}
+<h2>New Resource</h2>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">{{ form.resource_type.label(class="form-label") }}{{ form.resource_type(class="form-select") }}</div>
+    <div class="mb-3">{{ form.name.label(class="form-label") }}{{ form.name(class="form-control") }}</div>
+    <div class="mb-3">{{ form.code.label(class="form-label") }}{{ form.code(class="form-control") }}</div>
+    <div class="mb-3">{{ form.region_id.label(class="form-label") }}{{ form.region_id(class="form-select") }}</div>
+    {{ form.submit(class="btn btn-success") }}
+    <a href="{{ url_for('dispatch.resources') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

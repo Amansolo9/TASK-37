@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Report #{{ job.id }}{% endblock %}
+{% block content %}
+<h2>Report #{{ job.id }}</h2>
+<div hx-get="{{ url_for('analytics.report_detail', job_id=job.id) }}" hx-trigger="{% if job.status in ('queued','running') %}every 3s{% endif %}" hx-target="this">
+    {% include "analytics/report_status_partial.html" %}
+</div>
+{% endblock %}

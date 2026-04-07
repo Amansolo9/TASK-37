@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Version History - {{ item.slug }}{% endblock %}
+{% block content %}
+<h2>Version History: {{ item.slug }}</h2>
+<a href="{{ url_for('cms.content_detail', id=item.id) }}" class="btn btn-sm btn-outline-secondary mb-3">Back to Content</a>
+<table class="table table-striped">
+    <thead><tr><th>Version</th><th>Title</th><th>State</th><th>Author</th><th>Created</th></tr></thead>
+    <tbody>
+    {% for v in versions %}
+    <tr {% if item.current_version_id == v.id %}class="table-active"{% endif %}>
+        <td>v{{ v.version_number }}{% if item.current_version_id == v.id %} <span class="badge bg-primary">Current</span>{% endif %}{% if item.published_version_id == v.id %} <span class="badge bg-success">Published</span>{% endif %}</td>
+        <td>{{ v.title }}</td>
+        <td>{{ v.workflow_state }}</td>
+        <td>{{ v.author.display_name if v.author else '' }}</td>
+        <td>{{ format_datetime(v.created_at) }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

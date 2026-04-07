@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}New Order{% endblock %}
+{% block content %}
+<h2>New Order</h2>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <div class="row">
+        <div class="col-md-6 mb-3">{{ form.customer_name.label(class="form-label") }}{{ form.customer_name(class="form-control") }}</div>
+        <div class="col-md-6 mb-3">{{ form.customer_org.label(class="form-label") }}{{ form.customer_org(class="form-control") }}</div>
+    </div>
+    <div class="mb-3">{{ form.service_address.label(class="form-label") }}{{ form.service_address(class="form-control", rows=2) }}<small class="text-muted">This will be encrypted at rest.</small></div>
+    <div class="row">
+        <div class="col-md-4 mb-3">{{ form.region_id.label(class="form-label") }}{{ form.region_id(class="form-select") }}</div>
+        <div class="col-md-4 mb-3">{{ form.scheduled_date.label(class="form-label") }}{{ form.scheduled_date(class="form-control") }}</div>
+    </div>
+    <h5>Line Items</h5>
+    <div id="line-items">
+        <div class="row g-2 mb-2">
+            <div class="col-md-6"><select name="line_svc_0" class="form-select"><option value="">Select Service</option>{% for s in services %}<option value="{{ s.id }}">{{ s.name }} ({{ s.pricing_model }}: ${{ s.unit_rate or s.package_price }})</option>{% endfor %}</select></div>
+            <div class="col-md-2"><input type="number" name="line_qty_0" class="form-control" value="1" min="1" step="0.01" placeholder="Qty"></div>
+        </div>
+    </div>
+    <button type="button" class="btn btn-outline-secondary btn-sm mb-3" onclick="addLine()">+ Add Line</button>
+    <div class="mb-3">{{ form.notes.label(class="form-label") }}{{ form.notes(class="form-control", rows=2) }}</div>
+    {{ form.submit(class="btn btn-success") }} <a href="{{ url_for('orders.order_list') }}" class="btn btn-secondary">Cancel</a>
+</form>
+<script>
+var lineIdx = 1;
+function addLine() {
+    var html = '<div class="row g-2 mb-2"><div class="col-md-6"><select name="line_svc_'+lineIdx+'" class="form-select"><option value="">Select Service</option>{% for s in services %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}</select></div><div class="col-md-2"><input type="number" name="line_qty_'+lineIdx+'" class="form-control" value="1" min="1" step="0.01"></div></div>';
+    document.getElementById('line-items').insertAdjacentHTML('beforeend', html);
+    lineIdx++;
+}
+</script>
+{% endblock %}

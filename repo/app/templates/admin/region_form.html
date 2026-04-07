@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit Region" if editing else "New Region" }}{% endblock %}
+{% block content %}
+<h2>{{ "Edit Region" if editing else "New Region" }}</h2>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">{{ form.code.label(class="form-label") }}{{ form.code(class="form-control") }}</div>
+    <div class="mb-3">{{ form.name.label(class="form-label") }}{{ form.name(class="form-control") }}</div>
+    <div class="mb-3">{{ form.sales_tax_rate.label(class="form-label") }}{{ form.sales_tax_rate(class="form-control", step="0.0001") }}<small class="text-muted">e.g. 0.0825 for 8.25%</small></div>
+    <div class="mb-3 form-check">{{ form.active(class="form-check-input") }}{{ form.active.label(class="form-check-label") }}</div>
+    {{ form.submit(class="btn btn-success") }}
+    <a href="{{ url_for('admin.regions') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

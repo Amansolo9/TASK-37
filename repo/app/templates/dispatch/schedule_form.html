@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}New Schedule Item{% endblock %}
+{% block content %}
+<h2>New Schedule Item</h2>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">{{ form.title.label(class="form-label") }}{{ form.title(class="form-control") }}</div>
+    <div class="row">
+        <div class="col-md-4 mb-3">{{ form.region_id.label(class="form-label") }}{{ form.region_id(class="form-select") }}</div>
+        <div class="col-md-4 mb-3">{{ form.scheduled_date.label(class="form-label") }}{{ form.scheduled_date(class="form-control") }}</div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 mb-3">{{ form.start_time.label(class="form-label") }}{{ form.start_time(class="form-control") }}</div>
+        <div class="col-md-3 mb-3">{{ form.end_time.label(class="form-label") }}{{ form.end_time(class="form-control") }}</div>
+    </div>
+    <div class="row">
+        <div class="col-md-4 mb-3">{{ form.classroom_id.label(class="form-label") }}{{ form.classroom_id(class="form-select") }}</div>
+        <div class="col-md-4 mb-3">{{ form.instructor_id.label(class="form-label") }}{{ form.instructor_id(class="form-select") }}</div>
+        <div class="col-md-4 mb-3">{{ form.time_slot_template_id.label(class="form-label") }}{{ form.time_slot_template_id(class="form-select") }}</div>
+    </div>
+    <div class="mb-3">{{ form.notes.label(class="form-label") }}{{ form.notes(class="form-control", rows=3) }}</div>
+    {{ form.submit(class="btn btn-success") }}
+    <a href="{{ url_for('dispatch.schedule') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

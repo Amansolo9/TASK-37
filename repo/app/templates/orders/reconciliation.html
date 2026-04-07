@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Reconciliation{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Reconciliation</h2>
+    <a href="{{ url_for('orders.reconciliation_new') }}" class="btn btn-success">New Run</a>
+</div>
+<table class="table table-striped">
+    <thead><tr><th>Run</th><th>Label</th><th>Created By</th><th>Date</th><th>Items</th></tr></thead>
+    <tbody>
+    {% for r in runs %}
+    <tr><td>#{{ r.id }}</td><td>{{ r.run_label }}</td><td>{{ r.creator.display_name if r.creator else '' }}</td><td>{{ format_datetime(r.created_at) }}</td><td>{{ r.items|length }}</td></tr>
+    {% endfor %}
+    {% if not runs %}<tr><td colspan="5" class="text-muted text-center">No reconciliation runs.</td></tr>{% endif %}
+    </tbody>
+</table>
+{% endblock %}

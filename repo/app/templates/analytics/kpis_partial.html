@@ -1,0 +1,13 @@
+<div class="row g-3">
+    {% for key, val in metrics.items() %}
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-subtitle text-muted">{{ key|replace('_',' ')|title }}</h6>
+                <h4 class="card-title mt-1">{{ val }}</h4>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% if not metrics %}<div class="col-12"><p class="text-muted">No KPI data available.</p></div>{% endif %}
+</div>

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Review Queue - CMS{% endblock %}
+{% block content %}
+<h2>Review Queue</h2>
+<table class="table table-striped">
+    <thead><tr><th>Title</th><th>Author</th><th>Submitted</th><th></th></tr></thead>
+    <tbody>
+    {% for item in items %}
+    <tr>
+        <td>{{ item.current_version.title if item.current_version else item.slug }}</td>
+        <td>{{ item.creator.display_name if item.creator else '' }}</td>
+        <td>{{ format_datetime(item.updated_at) }}</td>
+        <td><a href="{{ url_for('cms.content_detail', id=item.id) }}" class="btn btn-sm btn-outline-warning">Review</a></td>
+    </tr>
+    {% endfor %}
+    {% if not items %}<tr><td colspan="4" class="text-muted text-center">No items pending review.</td></tr>{% endif %}
+    </tbody>
+</table>
+{% endblock %}

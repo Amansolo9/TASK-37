@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Orders{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Orders</h2>
+    <a href="{{ url_for('orders.order_new') }}" class="btn btn-success">New Order</a>
+</div>
+<div class="row mb-3 g-2">
+    <div class="col-auto">
+        <select class="form-select" hx-get="{{ url_for('htmx_api.htmx_order_list') }}" hx-target="#order-table" hx-trigger="change" name="state">
+            <option value="">All States</option>
+            {% for s in ['created','paid','completed','canceled','refunded'] %}<option value="{{ s }}" {% if current_state == s %}selected{% endif %}>{{ s|title }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="col-auto">
+        <select class="form-select" hx-get="{{ url_for('htmx_api.htmx_order_list') }}" hx-target="#order-table" hx-trigger="change" name="region_id">
+            <option value="">All Regions</option>
+            {% for r in regions %}<option value="{{ r.id }}" {% if current_region_id == r.id %}selected{% endif %}>{{ r.name }}</option>{% endfor %}
+        </select>
+    </div>
+</div>
+<div id="order-table">{% include "orders/order_list_partial.html" %}</div>
+{% endblock %}

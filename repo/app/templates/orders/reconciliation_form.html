@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}New Reconciliation Run{% endblock %}
+{% block content %}
+<h2>New Reconciliation Run</h2>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">{{ form.label.label(class="form-label") }}{{ form.label(class="form-control") }}</div>
+    <div class="mb-3">{{ form.notes.label(class="form-label") }}{{ form.notes(class="form-control", rows=2) }}</div>
+    <h5>Orders to Reconcile</h5>
+    <table class="table table-sm">
+        <thead><tr><th>Include</th><th>Order #</th><th>Expected</th><th>Actual Amount</th></tr></thead>
+        <tbody>
+        {% for o in orders %}
+        <tr>
+            <td><input type="checkbox" name="order_ids" value="{{ o.id }}" checked></td>
+            <td>{{ o.order_number }}</td><td>${{ o.total_amount }}</td>
+            <td><input type="number" name="actual_amounts" value="{{ o.total_amount }}" step="0.01" class="form-control form-control-sm" style="width:120px"></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {{ form.submit(class="btn btn-success") }} <a href="{{ url_for('orders.reconciliation') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

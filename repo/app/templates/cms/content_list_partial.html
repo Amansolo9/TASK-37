@@ -1,0 +1,18 @@
+<table class="table table-striped">
+    <thead><tr><th>Title</th><th>Slug</th><th>State</th><th>Region</th><th>Updated</th><th></th></tr></thead>
+    <tbody>
+    {% for item in pagination.items %}
+    <tr>
+        <td>{{ item.current_version.title if item.current_version else '' }}</td>
+        <td><code>{{ item.slug }}</code></td>
+        <td><span class="badge bg-{% if item.workflow_state == 'published' %}success{% elif item.workflow_state == 'in_review' %}warning{% elif item.workflow_state == 'scheduled' %}info{% elif item.workflow_state == 'withdrawn' %}danger{% else %}secondary{% endif %}">{{ item.workflow_state|replace('_',' ')|title }}</span></td>
+        <td>{{ item.region.name if item.region else '' }}</td>
+        <td>{{ format_datetime(item.updated_at) }}</td>
+        <td><a href="{{ url_for('cms.content_detail', id=item.id) }}" class="btn btn-sm btn-outline-primary">Edit</a></td>
+    </tr>
+    {% endfor %}
+    {% if not pagination.items %}<tr><td colspan="6" class="text-muted text-center">No content found.</td></tr>{% endif %}
+    </tbody>
+</table>
+{% from "components/pagination.html" import render_pagination %}
+{{ render_pagination(pagination, 'cms.content_list') }}

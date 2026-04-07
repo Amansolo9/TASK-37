@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GreenCycle Portal{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}">GreenCycle Portal</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navMain">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    {% if current_user.has_any_permission('content.create','content.edit','content.review') %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">CMS</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('cms.content_list') }}">Content</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('cms.review_queue') }}">Review Queue</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('cms.categories') }}">Categories</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('cms.tags') }}">Tags</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('cms.homepage_placement') }}">Homepage</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('search.search_page') }}">Search</a></li>
+                    {% if current_user.has_any_permission('dispatch.manage_resources','dispatch.manage_schedule') %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Dispatch</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('dispatch.resources') }}">Resources</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('dispatch.time_slots') }}">Time Slots</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('dispatch.schedule') }}">Schedule</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('dispatch.conflicts') }}">Conflicts</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('dispatch.changes') }}">Changes</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% if current_user.has_any_permission('orders.manage') %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Orders</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('catalog.services') }}">Services</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('orders.order_list') }}">Orders</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('orders.reconciliation') }}">Reconciliation</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% if current_user.has_any_permission('analytics.view') %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Analytics</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('analytics.kpis') }}">KPIs</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('analytics.reports') }}">Reports</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% if current_user.has_any_permission('files.upload','files.download') %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('files.file_list') }}">Files</a></li>
+                    {% endif %}
+                    {% if current_user.has_any_permission('admin.manage_users','admin.manage_roles') %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Admin</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('admin.users') }}">Users</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.roles') }}">Roles</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.regions') }}">Regions</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.settings') }}">Settings</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.api_clients') }}">API Clients</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.audit_logs') }}">Audit Logs</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <span class="nav-link text-light">{{ current_user.display_name }}</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <div class="container-fluid mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/htmx/htmx.min.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Change Notices - Dispatch{% endblock %}
+{% block content %}
+<h2>Schedule Change Notices</h2>
+<table class="table table-striped table-sm">
+    <thead><tr><th>Time</th><th>Item</th><th>Change</th><th>Notice</th><th>By</th></tr></thead>
+    <tbody>
+    {% for c in changes %}
+    <tr>
+        <td>{{ format_datetime(c.changed_at) }}</td>
+        <td>{{ c.schedule_item.title if c.schedule_item else '' }}</td>
+        <td><span class="badge bg-info">{{ c.change_type }}</span></td>
+        <td>{{ c.notice_text }}</td>
+        <td>{{ c.changer.display_name if c.changer else '' }}</td>
+    </tr>
+    {% endfor %}
+    {% if not changes %}<tr><td colspan="5" class="text-muted text-center">No changes recorded.</td></tr>{% endif %}
+    </tbody>
+</table>
+{% endblock %}
