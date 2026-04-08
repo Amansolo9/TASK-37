@@ -14,6 +14,11 @@ An offline-first Flask + HTMX application for municipal sustainability content m
 # Install dependencies
 pip install -r requirements.txt
 
+# Copy and configure environment
+cp .env.example .env
+# Edit .env to set SECRET_KEY, JWT_SECRET_KEY, and FIELD_ENCRYPTION_KEY
+# Generate a Fernet key: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+
 # Initialize the database
 export FLASK_APP=wsgi.py
 flask db upgrade

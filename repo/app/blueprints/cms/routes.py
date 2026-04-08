@@ -49,6 +49,10 @@ def content_new():
     form = ContentForm()
     _populate_form_choices(form)
     if form.validate_on_submit():
+        from app.services.access_policy import validate_region_for_create
+        if form.region_id.data and not validate_region_for_create(current_user, form.region_id.data):
+            flash("Region is outside your authorized scope.", "danger")
+            return render_template("cms/content_form.html", form=form, editing=False)
         try:
             item = cms_service.create_content(
                 title=form.title.data,
@@ -204,7 +208,11 @@ def content_versions(id):
 @login_required
 @permission_required("content.review")
 def review_queue():
+    from app.services.access_policy import get_actor_region_ids
     items = cms_service.get_review_queue()
+    region_ids = get_actor_region_ids(current_user)
+    if region_ids is not None:
+        items = [i for i in items if i.region_id is None or i.region_id in region_ids]
     return render_template("cms/review_queue.html", items=items)
 
 
@@ -228,8 +236,12 @@ def category_add():
         slug = cms_service.slugify(form.name.data)
         cat = Category(name=form.name.data, slug=slug, active=True)
         db.session.add(cat)
-        db.session.commit()
-        flash("Category added.", "success")
+        try:
+            db.session.commit()
+            flash("Category added.", "success")
+        except Exception:
+            db.session.rollback()
+            flash("Category with that name/slug already exists.", "danger")
     cats = Category.query.order_by(Category.name).all()
     return render_template("cms/categories_partial.html", categories=cats, form=TaxonomyForm())
 
@@ -252,8 +264,12 @@ def tag_add():
         slug = cms_service.slugify(form.name.data)
         tag = Tag(name=form.name.data, slug=slug, active=True)
         db.session.add(tag)
-        db.session.commit()
-        flash("Tag added.", "success")
+        try:
+            db.session.commit()
+            flash("Tag added.", "success")
+        except Exception:
+            db.session.rollback()
+            flash("Tag with that name/slug already exists.", "danger")
     tags_list = Tag.query.order_by(Tag.name).all()
     return render_template("cms/tags_partial.html", tags=tags_list, form=TaxonomyForm())
 
@@ -263,7 +279,9 @@ def tag_add():
 @permission_required("content.manage_homepage_placement")
 def homepage_placement():
     data = cms_service.get_homepage_content()
-    published = ContentItem.query.filter_by(workflow_state="published").order_by(ContentItem.published_at.desc()).all()
+    pub_query = ContentItem.query.filter_by(workflow_state="published").order_by(ContentItem.published_at.desc())
+    pub_query = apply_region_filter(pub_query, ContentItem, current_user)
+    published = pub_query.all()
     return render_template("cms/homepage_placement.html", homepage=data, published=published)
 
 
@@ -271,6 +289,10 @@ def homepage_placement():
 @login_required
 @permission_required("content.manage_homepage_placement")
 def update_placement(id):
+    item = db.session.get(ContentItem, id)
+    if not item or not check_region_access(item, current_user):
+        flash("Access denied.", "danger")
+        return redirect(url_for("cms.homepage_placement"))
     cms_service.update_placement(
         item_id=id,
         is_pinned="is_pinned" in request.form,

@@ -24,6 +24,11 @@ def search_page():
     result_count = 0
     trending = search_service.get_trending_terms(days=7)
 
+    # Validate submitted region filter against actor scope
+    from app.services.access_policy import validate_region_for_create
+    if region_id and not validate_region_for_create(current_user, region_id):
+        region_id = None  # clamp to unfiltered (results still scoped below)
+
     if query:
         results, result_count = search_service.search(
             query, user_id=current_user.id, record_type=record_type,
@@ -31,6 +36,12 @@ def search_page():
             date_from=date_from, date_to=date_to, category_id=category_id,
             page=page,
         )
+        # Apply actor-region isolation to search results
+        from app.services.access_policy import get_actor_region_ids
+        region_ids = get_actor_region_ids(current_user)
+        if region_ids is not None:
+            results = [r for r in results if r.region_id is None or r.region_id in region_ids]
+            result_count = len(results)
 
     regions = Region.query.filter_by(active=True).all()
     from app.models.region import Category

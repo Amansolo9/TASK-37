@@ -32,6 +32,12 @@ def kpis():
     date_from_raw = request.args.get("date_from")
     date_to_raw = request.args.get("date_to")
     filters = {}
+    # Enforce actor-region scope
+    from app.services.access_policy import validate_region_for_create, get_actor_region_ids
+    if region_id:
+        if not validate_region_for_create(current_user, region_id):
+            flash("Region is outside your authorized scope.", "danger")
+            region_id = None  # fall back to scoped default
     if region_id:
         filters["region_id"] = region_id
     if date_from_raw:
@@ -74,6 +80,10 @@ def report_new():
     report_type = request.form.get("report_type", "orders")
     filters = {}
     region_id = request.form.get("region_id", type=int)
+    from app.services.access_policy import validate_region_for_create
+    if region_id and not validate_region_for_create(current_user, region_id):
+        flash("Region is outside your authorized scope.", "danger")
+        region_id = None
     if region_id:
         filters["region_id"] = region_id
     state = request.form.get("state")

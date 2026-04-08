@@ -60,6 +60,10 @@ def order_new():
                 qty = request.form.get(f"line_qty_{idx}", type=float, default=1)
                 if svc_id:
                     line_items.append({"service_item_id": svc_id, "quantity": qty})
+        from app.services.access_policy import validate_region_for_create
+        if not validate_region_for_create(current_user, form.region_id.data):
+            flash("Region is outside your authorized scope.", "danger")
+            return render_template("orders/order_form.html", form=form, services=services)
         try:
             order = order_service.create_order(
                 customer_name=form.customer_name.data,
@@ -195,7 +199,10 @@ def refund(id):
 @login_required
 @permission_required("orders.reconcile")
 def reconciliation():
-    runs = ReconciliationRun.query.order_by(ReconciliationRun.created_at.desc()).all()
+    query = ReconciliationRun.query.order_by(ReconciliationRun.created_at.desc())
+    if not current_user.has_permission("admin.manage_users"):
+        query = query.filter(ReconciliationRun.created_by == current_user.id)
+    runs = query.all()
     return render_template("orders/reconciliation.html", runs=runs)
 
 
@@ -210,10 +217,21 @@ def reconciliation_new():
         if len(order_ids) != len(actuals):
             flash("Mismatched order and amount counts.", "danger")
             return render_template("orders/reconciliation_form.html", form=form)
+        # Validate all order_ids are in actor's region scope
+        from app.services.access_policy import check_region_access as _check_region
+        for oid in order_ids:
+            order_obj = db.session.get(Order, oid)
+            if order_obj and not _check_region(order_obj, current_user):
+                flash("One or more orders are outside your region scope.", "danger")
+                paid_query = Order.query.filter(Order.state.in_(["paid", "completed"]))
+                paid_query = apply_region_filter(paid_query, Order, current_user)
+                return render_template("orders/reconciliation_form.html", form=form, orders=paid_query.all())
         run = order_service.create_reconciliation_run(
             form.label.data, current_user.id, order_ids, actuals, form.notes.data,
         )
         flash("Reconciliation run created.", "success")
         return redirect(url_for("orders.reconciliation"))
-    paid_orders = Order.query.filter(Order.state.in_(["paid", "completed"])).all()
+    paid_query = Order.query.filter(Order.state.in_(["paid", "completed"]))
+    paid_query = apply_region_filter(paid_query, Order, current_user)
+    paid_orders = paid_query.all()
     return render_template("orders/reconciliation_form.html", form=form, orders=paid_orders)

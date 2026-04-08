@@ -78,6 +78,14 @@ def _resolve_content(root, info, id=None, slug=None):
         return None
     if not item:
         return None
+    # Enforce region isolation on detail lookup
+    actor_id = ctx.get("actor_id")
+    if actor_id:
+        from app.services.access_policy import check_region_access
+        from app.models.user import User
+        actor = db.session.get(User, actor_id)
+        if actor and not check_region_access(item, actor):
+            raise Exception("Access denied: content is outside your region scope")
     v = item.current_version
     return {
         "id": item.id, "slug": item.slug,
@@ -97,6 +105,15 @@ def _resolve_contents(root, info, state=None, region_id=None):
     if "content.read" not in scopes:
         raise Exception("Scope 'content.read' required")
     q = cms_service.get_content_list(state=state, region_id=region_id)
+    actor_id = ctx.get("actor_id")
+    if actor_id:
+        from app.services.access_policy import apply_region_filter, get_actor_region_ids
+        from app.models.user import User
+        from app.extensions import db
+        actor = db.session.get(User, actor_id)
+        if actor:
+            from app.models.cms import ContentItem
+            q = apply_region_filter(q, ContentItem, actor)
     items = q.limit(50).all()
     result = []
     for item in items:
@@ -120,6 +137,17 @@ def _resolve_search(root, info, query, record_type=None):
     if "search.read" not in scopes:
         raise Exception("Scope 'search.read' required")
     results, count = search_service.search(query, record_type=record_type)
+    actor_id = ctx.get("actor_id")
+    if actor_id:
+        from app.services.access_policy import get_actor_region_ids
+        from app.models.user import User
+        from app.extensions import db
+        actor = db.session.get(User, actor_id)
+        if actor:
+            region_ids = get_actor_region_ids(actor)
+            if region_ids is not None:
+                results = [r for r in results if r.region_id is None or r.region_id in region_ids]
+                count = len(results)
     return [{
         "id": r.id, "record_type": r.record_type, "title": r.title,
         "body_text": (r.body_text or "")[:200], "region_id": r.region_id,
@@ -134,6 +162,15 @@ def _resolve_schedules(root, info, status=None, region_id=None):
     if "dispatch.read" not in scopes:
         raise Exception("Scope 'dispatch.read' required")
     q = dispatch_service.get_schedule_items(status=status, region_id=region_id)
+    actor_id = ctx.get("actor_id")
+    if actor_id:
+        from app.services.access_policy import apply_region_filter
+        from app.models.user import User
+        from app.extensions import db
+        from app.models.dispatch import ScheduleItem
+        actor = db.session.get(User, actor_id)
+        if actor:
+            q = apply_region_filter(q, ScheduleItem, actor)
     items = q.limit(50).all()
     return [{
         "id": i.id, "title": i.title, "status": i.status,
@@ -150,6 +187,15 @@ def _resolve_orders(root, info, state=None, region_id=None):
     if "orders.read" not in scopes:
         raise Exception("Scope 'orders.read' required")
     q = order_service.get_order_list(state=state, region_id=region_id)
+    actor_id = ctx.get("actor_id")
+    if actor_id:
+        from app.services.access_policy import apply_region_filter
+        from app.models.user import User
+        from app.extensions import db
+        from app.models.catalog import Order
+        actor = db.session.get(User, actor_id)
+        if actor:
+            q = apply_region_filter(q, Order, actor)
     items = q.limit(50).all()
     return [{
         "id": o.id, "order_number": o.order_number,
@@ -186,8 +232,8 @@ def _resolve_create_report(root, info, report_type, filters=None):
     ctx = info.context or {}
     actor_id = ctx.get("actor_id")
     scopes = ctx.get("scopes", set())
-    if "analytics.read" not in scopes:
-        raise Exception("Scope 'analytics.read' required")
+    if "analytics.export" not in scopes:
+        raise Exception("Scope 'analytics.export' required")
     if not actor_id:
         raise Exception("Authentication required")
     f = json.loads(filters) if filters else {}

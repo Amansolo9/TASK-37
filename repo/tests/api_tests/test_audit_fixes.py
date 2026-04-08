@@ -78,7 +78,7 @@ class TestGraphQLAuthorization:
 
     def test_graphql_mutation_uses_actor_id(self, client, app, db, admin_user):
         """GraphQL createReportJob mutation should use authenticated actor, not hardcoded."""
-        token = _get_token(app, db, admin_user, ["analytics.read"])
+        token = _get_token(app, db, admin_user, ["analytics.read", "analytics.export"])
         resp = client.post("/api/v1/graphql",
             headers=_api_headers(token),
             data=json.dumps({

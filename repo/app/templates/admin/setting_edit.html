@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit Setting: " + key if key else "New Setting" }}{% endblock %}
+{% block content %}
+<h2>{{ "Edit Setting: " + key if key else "New Setting" }}</h2>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    {% if not key %}
+    <div class="mb-3">
+        {{ form.key.label(class="form-label") }}
+        {{ form.key(class="form-control") }}
+    </div>
+    {% endif %}
+    <div class="mb-3">
+        {{ form.value.label(class="form-label") }}
+        {{ form.value(class="form-control", rows=4) }}
+    </div>
+    {{ form.submit(class="btn btn-success") }}
+    <a href="{{ url_for('admin.settings') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

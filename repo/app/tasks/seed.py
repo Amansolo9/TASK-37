@@ -100,7 +100,7 @@ def seed_command():
     db.session.commit()
     click.echo("  Users created")
 
-    # Regions
+    # Regions (defined early so user-region assignments can reference them)
     region_defs = [
         ("NE", "Northeast", Decimal("0.0825")),
         ("SE", "Southeast", Decimal("0.0700")),
@@ -117,6 +117,16 @@ def seed_command():
         regions[code] = r
     db.session.commit()
     click.echo("  Regions created")
+
+    # Assign regions to users
+    for user in users.values():
+        if user.username == "admin":
+            user.assigned_regions = list(regions.values())
+        else:
+            # Non-admin users get NE and SE regions by default
+            user.assigned_regions = [regions["NE"], regions["SE"]]
+    db.session.commit()
+    click.echo("  User region assignments created")
 
     # Categories
     cat_defs = ["Recycling", "Composting", "Education", "Community Events", "Policy"]

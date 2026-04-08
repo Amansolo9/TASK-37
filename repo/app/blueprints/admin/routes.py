@@ -109,6 +109,57 @@ def settings():
     return render_template("admin/settings.html", settings=settings_list)
 
 
+@bp.route("/settings/<key>", methods=["GET", "POST"])
+@login_required
+@permission_required("admin.manage_settings")
+def setting_edit(key):
+    from app.models.user import Setting
+    from app.forms.admin_forms import SettingForm
+    setting = Setting.query.get(key)
+    if not setting:
+        setting = Setting(key=key)
+    form = SettingForm(obj=setting)
+    if form.validate_on_submit():
+        setting.key = key
+        setting.value_json = form.value.data
+        setting.updated_by = current_user.id
+        db.session.merge(setting)
+        db.session.commit()
+        log_action(current_user.id, "setting_updated", "setting", None, {"key": key})
+        flash(f"Setting '{key}' updated.", "success")
+        return redirect(url_for("admin.settings"))
+    if setting.value_json:
+        form.value.data = setting.value_json
+    return render_template("admin/setting_edit.html", form=form, key=key)
+
+
+@bp.route("/settings/new", methods=["GET", "POST"])
+@login_required
+@permission_required("admin.manage_settings")
+def setting_new():
+    from app.models.user import Setting
+    from flask_wtf import FlaskForm
+    from wtforms import StringField, TextAreaField, SubmitField
+    from wtforms.validators import DataRequired
+    class NewSettingForm(FlaskForm):
+        key = StringField("Key", validators=[DataRequired()])
+        value = TextAreaField("Value")
+        submit = SubmitField("Create")
+    form = NewSettingForm()
+    if form.validate_on_submit():
+        existing = Setting.query.get(form.key.data)
+        if existing:
+            flash("Setting key already exists.", "danger")
+        else:
+            setting = Setting(key=form.key.data, value_json=form.value.data, updated_by=current_user.id)
+            db.session.add(setting)
+            db.session.commit()
+            log_action(current_user.id, "setting_created", "setting", None, {"key": form.key.data})
+            flash("Setting created.", "success")
+            return redirect(url_for("admin.settings"))
+    return render_template("admin/setting_edit.html", form=form, key=None)
+
+
 @bp.route("/regions")
 @login_required
 @permission_required("admin.manage_settings")

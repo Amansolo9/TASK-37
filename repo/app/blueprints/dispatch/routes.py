@@ -33,6 +33,10 @@ def permission_required(*perms):
 def resources():
     rtype = request.args.get("type")
     items = dispatch_service.get_resources(resource_type=rtype)
+    from app.services.access_policy import get_actor_region_ids
+    region_ids = get_actor_region_ids(current_user)
+    if region_ids is not None:
+        items = [r for r in items if r.region_id is None or r.region_id in region_ids]
     return render_template("dispatch/resources.html", resources=items, current_type=rtype)
 
 
@@ -43,6 +47,10 @@ def resource_new():
     form = ResourceForm()
     form.region_id.choices = [(0, "-- None --")] + [(r.id, r.name) for r in Region.query.filter_by(active=True).all()]
     if form.validate_on_submit():
+        from app.services.access_policy import validate_region_for_create
+        if form.region_id.data and not validate_region_for_create(current_user, form.region_id.data):
+            flash("Region is outside your authorized scope.", "danger")
+            return render_template("dispatch/resource_form.html", form=form)
         dispatch_service.create_resource(
             resource_type=form.resource_type.data,
             name=form.name.data, code=form.code.data,
@@ -86,6 +94,10 @@ def schedule_new():
     form = ScheduleItemForm()
     _populate_schedule_choices(form)
     if form.validate_on_submit():
+        from app.services.access_policy import validate_region_for_create
+        if not validate_region_for_create(current_user, form.region_id.data):
+            flash("Region is outside your authorized scope.", "danger")
+            return render_template("dispatch/schedule_form.html", form=form)
         sched_date = parse_date_us(form.scheduled_date.data)
         if not sched_date:
             flash("Invalid date format. Use MM/DD/YYYY.", "danger")
@@ -162,10 +174,13 @@ def substitute(id):
 @login_required
 @permission_required("dispatch.manage_schedule")
 def auto_assign():
-    unscheduled = ScheduleItem.query.filter(
+    from app.services.access_policy import apply_region_filter as _apply_rf
+    q = ScheduleItem.query.filter(
         ScheduleItem.status == "draft",
         ScheduleItem.classroom_id.is_(None),
-    ).all()
+    )
+    q = _apply_rf(q, ScheduleItem, current_user)
+    unscheduled = q.all()
     if not unscheduled:
         flash("No unscheduled items to assign.", "info")
         return redirect(url_for("dispatch.schedule"))
@@ -181,10 +196,13 @@ def auto_assign():
 @permission_required("dispatch.manage_schedule")
 def suggest():
     """Semi-automatic scheduling: generate suggestions for unscheduled items."""
-    unscheduled = ScheduleItem.query.filter(
+    from app.services.access_policy import apply_region_filter as _apply_rf
+    q = ScheduleItem.query.filter(
         ScheduleItem.status == "draft",
         ScheduleItem.classroom_id.is_(None),
-    ).all()
+    )
+    q = _apply_rf(q, ScheduleItem, current_user)
+    unscheduled = q.all()
     if not unscheduled:
         flash("No unscheduled items to suggest for.", "info")
         return redirect(url_for("dispatch.schedule"))
@@ -219,6 +237,11 @@ def confirm_suggestion(id):
 @permission_required("dispatch.resolve_conflicts")
 def conflicts():
     items = dispatch_service.get_unresolved_conflicts()
+    from app.services.access_policy import get_actor_region_ids
+    region_ids = get_actor_region_ids(current_user)
+    if region_ids is not None:
+        items = [c for c in items if c.schedule_item and
+                (c.schedule_item.region_id is None or c.schedule_item.region_id in region_ids)]
     return render_template("dispatch/conflicts.html", conflicts=items)
 
 
@@ -226,6 +249,12 @@ def conflicts():
 @login_required
 @permission_required("dispatch.resolve_conflicts")
 def resolve_conflict(id):
+    from app.models.dispatch import ScheduleConflict
+    conflict = db.session.get(ScheduleConflict, id)
+    if conflict and conflict.schedule_item:
+        if not check_region_access(conflict.schedule_item, current_user):
+            flash("Access denied.", "danger")
+            return redirect(url_for("dispatch.conflicts"))
     try:
         dispatch_service.resolve_conflict(id, current_user.id)
         flash("Conflict resolved.", "success")
@@ -239,6 +268,11 @@ def resolve_conflict(id):
 @permission_required("dispatch.view_change_notices")
 def changes():
     items = dispatch_service.get_recent_changes()
+    from app.services.access_policy import get_actor_region_ids
+    region_ids = get_actor_region_ids(current_user)
+    if region_ids is not None:
+        items = [c for c in items if c.schedule_item and
+                (c.schedule_item.region_id is None or c.schedule_item.region_id in region_ids)]
     return render_template("dispatch/changes.html", changes=items)
 
 
