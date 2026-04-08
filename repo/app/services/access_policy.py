@@ -62,6 +62,20 @@ def get_actor_region_ids(user):
     return region_ids if region_ids else {-1}  # empty set -> deny all
 
 
+def validate_region_for_create(user, region_id):
+    """Check if a user is allowed to create/operate on an entity in the given region.
+
+    Returns True if the user has access to the region, False otherwise.
+    Admins can operate on any region.
+    """
+    if not region_id:
+        return True
+    region_ids = get_actor_region_ids(user)
+    if region_ids is None:
+        return True  # admin
+    return region_id in region_ids
+
+
 def apply_region_filter(query, model, user):
     """Apply region-based isolation filter to a query.
 
